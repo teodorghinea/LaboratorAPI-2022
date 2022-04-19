@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace LaboratorAPI.Controllers
@@ -27,7 +28,7 @@ namespace LaboratorAPI.Controllers
 
         [HttpPost]
         [Route("add")]
-        public async Task<ActionResult<bool>> Add([FromBody] UserDto request)
+        public async Task<ActionResult<bool>> Add([FromBody] RegisterUserDto request)
         {
             if(request == null)
             {
@@ -71,11 +72,33 @@ namespace LaboratorAPI.Controllers
 
         [HttpGet]
         [Route("all")]
-        [Authorize()]
-        public ActionResult<List<AppUser>> GetAll()
+        [Authorize(Roles = "User")]
+        public ActionResult<List<LightUserDto>> GetAll()
         {
-            var users = _unitOfWork.Users.GetAll(includeDeleted: false).ToList();
+            var users = _unitOfWork.Users.GetAll(includeDeleted: false).Select(u => new LightUserDto
+            {
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+            });
             return Ok(users);
+        }
+
+        [HttpGet]
+        [Route("my-account")]
+        [Authorize(Roles = "User")]
+        public ActionResult<bool> MyAccount()
+        {
+            var userId = GetUserId();
+            if(userId == null) return Unauthorized();
+
+            var user = _unitOfWork.Users.GetById((Guid)userId);
+
+            return Ok(new UserDto
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+            });
         }
 
 
@@ -93,17 +116,17 @@ namespace LaboratorAPI.Controllers
             return Ok(users);
         }
 
-        [HttpPost]
-        [Route("update/{userId}")]
-        public async Task<ActionResult<bool>> Update([FromRoute] Guid userId)
+        [NonAction]
+        private Guid? GetUserId()
         {
-           var user = _unitOfWork.Users.GetById(userId);
+            string userIdClaimValue = User
+                  .Claims
+                  .FirstOrDefault(x => x.Type == "userId")?
+                  .Value;
 
-            user.FirstName = "First Name 2";
+            bool succeeded = Guid.TryParse(userIdClaimValue, out Guid userId);
 
-            _unitOfWork.Users.Update(user);
-
-            return await _unitOfWork.SaveChangesAsync();
+            return succeeded ? userId : null;
         }
     }
 }
