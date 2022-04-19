@@ -1,6 +1,8 @@
 ﻿using LaboratorAPI.DataLayer.Entities;
 using LaboratorAPI.DataLayer.Repositories;
 using LaboratorAPI.Dtos;
+using LaboratorAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -15,10 +17,12 @@ namespace LaboratorAPI.Controllers
     {
        
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICustomerAuthService _authorization;
 
-        public UserController(IUnitOfWork unitOfWork)
+        public UserController(IUnitOfWork unitOfWork, ICustomerAuthService authorization)
         {
             _unitOfWork = unitOfWork;
+            _authorization = authorization;
         }
 
         [HttpPost]
@@ -30,22 +34,45 @@ namespace LaboratorAPI.Controllers
                 BadRequest(error: "Request must not be empty!");
             }
 
-            var user = new User()
+            var hashedPassword = _authorization.HashPassword(request.Password);
+
+            var user = new AppUser()
             {
                 FirstName = request.FirstName,
                 LastName  = request.LastName,
+                PasswordHash = hashedPassword,
+                Email = request.Email,
             };
 
             _unitOfWork.Users.Insert(user);
-
             var saveResult = await _unitOfWork.SaveChangesAsync();
-            
+
             return Ok(saveResult);
         }
 
+        [HttpPost]
+        [Route("login")]
+        public ActionResult<ResponseLogin> Login([FromBody] RequestLogin request)
+        {
+            var user = _unitOfWork.Users.GetUserByEmail(request.Email);
+            if (user == null) return BadRequest("User not found!");
+
+            var samePassword = _authorization.VerifyHashedPassword(user.PasswordHash, request.Password);
+            if(!samePassword) return BadRequest("Invalid password!");
+
+            var user_jsonWebToken = _authorization.GetToken(user);
+            
+            return Ok(new ResponseLogin
+            {
+                Token = user_jsonWebToken
+            });
+        }
+
+
         [HttpGet]
         [Route("all")]
-        public ActionResult<List<User>> GetAll()
+        [Authorize()]
+        public ActionResult<List<AppUser>> GetAll()
         {
             var users = _unitOfWork.Users.GetAll(includeDeleted: false).ToList();
             return Ok(users);
@@ -54,7 +81,7 @@ namespace LaboratorAPI.Controllers
 
         [HttpGet]
         [Route("delete/all")]
-        public async Task<ActionResult<List<User>>> DeleteAll()
+        public async Task<ActionResult<List<AppUser>>> DeleteAll()
         {
             var users = _unitOfWork.Users.GetAll().ToList();
 
@@ -68,7 +95,7 @@ namespace LaboratorAPI.Controllers
 
         [HttpPost]
         [Route("update/{userId}")]
-        public async Task<bool> Update([FromRoute] Guid userId)
+        public async Task<ActionResult<bool>> Update([FromRoute] Guid userId)
         {
            var user = _unitOfWork.Users.GetById(userId);
 

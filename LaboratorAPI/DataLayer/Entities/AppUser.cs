@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LaboratorAPI.DataLayer.Entities
 {
-    public class User : BaseEntity
+    public class AppUser : BaseEntity
     {
         [MaxLength(50)]
         public string FirstName { get; set; }
@@ -11,8 +11,10 @@ namespace LaboratorAPI.DataLayer.Entities
         [MaxLength(50)]
         public string LastName { get; set; }
 
+        public string Email { get; set; }
 
-        // relatia one-to-many  : one User has many Notifications
+        public string PasswordHash { get; set; }
+
         public List<Notification> Notifications { get; set; } = new List<Notification>();
     }
 }

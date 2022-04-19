@@ -6,18 +6,18 @@ using System.Linq;
 namespace LaboratorAPI.DataLayer.Repositories
 {
 
-    public interface IUserRepository : IRepositoryBase<User>
+    public interface IUserRepository : IRepositoryBase<AppUser>
     {
-        User GetUserByName(string name);
+        AppUser GetUserByEmail(string name);
     }
 
-    public class UserRepository : RepositoryBase<User>, IUserRepository
+    public class UserRepository : RepositoryBase<AppUser>, IUserRepository
     {
 
         public UserRepository(EfDbContext context) : base(context) { }
 
 
-        public User GetUserByName(string name)
+        public AppUser GetUserByEmail(string email)
         {
             //SELECT TOP(1) * from Users as u
             var result = GetRecords()
@@ -25,13 +25,13 @@ namespace LaboratorAPI.DataLayer.Repositories
                  // INNER JOIN Notifications as n on n.UserId = u.Id
                 .Include(u => u.Notifications)
 
-                 // WHERE u.FirstName = @name or u.LastName = @name
-                .Where(u => u.FirstName == name || u.LastName == name)
+                 // WHERE u.Email = @email 
                 // IQueryable pana aici -> rezultatul nu e concret
+                .Where(u => u.Email == email)
+                
                 .FirstOrDefault();  
                 // -> rezultat concret
             return result;
         }
-
     }
 }

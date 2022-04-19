@@ -8,7 +8,7 @@ namespace LaboratorAPI.DataLayer
     public class EfDbContext : DbContext
     {
 
-        public DbSet<User> Users { get; set; }
+        public DbSet<AppUser> Users { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         
 

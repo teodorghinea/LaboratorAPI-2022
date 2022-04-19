@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LaboratorAPI.DataLayer.Entities
 {
-    // mosteneste BaseEntity pentru a folosi proprietatile comune (Id, ...)
     public class Notification : BaseEntity
     {
         [MaxLength(100)]
@@ -14,6 +13,6 @@ namespace LaboratorAPI.DataLayer.Entities
 
         public Guid UserId { get; set; }
 
-        public User User { get; set; }
+        public AppUser User { get; set; }
     }
 }
