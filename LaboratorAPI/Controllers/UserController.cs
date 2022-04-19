@@ -27,8 +27,8 @@ namespace LaboratorAPI.Controllers
         }
 
         [HttpPost]
-        [Route("add")]
-        public async Task<ActionResult<bool>> Add([FromBody] RegisterUserDto request)
+        [Route("register")]
+        public async Task<ActionResult<bool>> Register([FromBody] RegisterUserDto request)
         {
             if(request == null)
             {
@@ -103,6 +103,7 @@ namespace LaboratorAPI.Controllers
 
 
         [HttpGet]
+        [Authorize(Roles="Admin")]
         [Route("delete/all")]
         public async Task<ActionResult<List<AppUser>>> DeleteAll()
         {
