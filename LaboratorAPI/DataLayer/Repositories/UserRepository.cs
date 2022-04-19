@@ -1,5 +1,6 @@
 ﻿using LaboratorAPI.DataLayer.Entities;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,6 +10,7 @@ namespace LaboratorAPI.DataLayer.Repositories
     public interface IUserRepository : IRepositoryBase<AppUser>
     {
         AppUser GetUserByEmail(string name);
+        AppUser GetUserByIdWithNotifications(Guid id);
     }
 
     public class UserRepository : RepositoryBase<AppUser>, IUserRepository
@@ -22,7 +24,7 @@ namespace LaboratorAPI.DataLayer.Repositories
             //SELECT TOP(1) * from Users as u
             var result = GetRecords()
 
-                 // INNER JOIN Notifications as n on n.UserId = u.Id
+                 // FULL JOIN Notifications as n on n.UserId = u.Id
                 .Include(u => u.Notifications)
 
                  // WHERE u.Email = @email 
@@ -31,6 +33,15 @@ namespace LaboratorAPI.DataLayer.Repositories
                 
                 .FirstOrDefault();  
                 // -> rezultat concret
+            return result;
+        }
+
+        public AppUser GetUserByIdWithNotifications(Guid id)
+        {
+            var result = GetRecords()
+                .Include(user => user.Notifications)
+                .FirstOrDefault(user => user.Id == id);
+
             return result;
         }
     }

@@ -36,12 +36,13 @@ namespace LaboratorAPI.Services
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
             /* Generate keys online
-             *
+             * 128-bit  
              * https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx
             */
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_securityKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            
             var roleClaim = new Claim("role", "User");
             var idClaim = new Claim("userId", user.Id.ToString());
             var infoClaim = new Claim("username", user.Email);
@@ -108,7 +109,6 @@ namespace LaboratorAPI.Services
 
         public bool VerifyHashedPassword(string hashedPassword, string password)
         {
-
             if (hashedPassword == null)
             {
                 return false;

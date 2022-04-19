@@ -100,6 +100,7 @@ namespace LaboratorAPI
             //Repositories
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<INotificationsRepository, NotificationsRepository>();
 
             //Services
             services.AddScoped<ICustomerAuthService, CustomerAuthService>();

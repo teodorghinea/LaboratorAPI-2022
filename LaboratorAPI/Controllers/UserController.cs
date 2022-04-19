@@ -14,7 +14,7 @@ namespace LaboratorAPI.Controllers
 {
     [ApiController]
     [Route("api/users")]
-    public class UserController : ControllerBase
+    public class UserController : WebApiController
     {
        
         private readonly IUnitOfWork _unitOfWork;
@@ -36,7 +36,7 @@ namespace LaboratorAPI.Controllers
             }
 
             var hashedPassword = _authorization.HashPassword(request.Password);
-
+            
             var user = new AppUser()
             {
                 FirstName = request.FirstName,
@@ -72,7 +72,7 @@ namespace LaboratorAPI.Controllers
 
         [HttpGet]
         [Route("all")]
-        [Authorize(Roles = "User")]
+        [Authorize]
         public ActionResult<List<LightUserDto>> GetAll()
         {
             var users = _unitOfWork.Users.GetAll(includeDeleted: false).Select(u => new LightUserDto
@@ -91,16 +91,24 @@ namespace LaboratorAPI.Controllers
             var userId = GetUserId();
             if(userId == null) return Unauthorized();
 
-            var user = _unitOfWork.Users.GetById((Guid)userId);
+            var user = _unitOfWork.Users.GetUserByIdWithNotifications((Guid)userId);
+            var notifications = user.Notifications
+                .Select(notif =>
+                    new NotificationDto
+                    {
+                        Title = notif.Title,
+                        Description = notif.Description
+                    }
+                ).ToList();
 
             return Ok(new UserDto
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
+                Notifications = notifications
             });
         }
-
 
         [HttpGet]
         [Authorize(Roles="Admin")]
@@ -117,17 +125,6 @@ namespace LaboratorAPI.Controllers
             return Ok(users);
         }
 
-        [NonAction]
-        private Guid? GetUserId()
-        {
-            string userIdClaimValue = User
-                  .Claims
-                  .FirstOrDefault(x => x.Type == "userId")?
-                  .Value;
-
-            bool succeeded = Guid.TryParse(userIdClaimValue, out Guid userId);
-
-            return succeeded ? userId : null;
-        }
+       
     }
 }
