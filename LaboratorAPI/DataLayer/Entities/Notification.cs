@@ -11,6 +11,8 @@ namespace LaboratorAPI.DataLayer.Entities
         [MaxLength(1000)]
         public string Description { get; set; }
 
+        public string Picture { get; set; }
+
         public Guid UserId { get; set; }
 
         public AppUser User { get; set; }

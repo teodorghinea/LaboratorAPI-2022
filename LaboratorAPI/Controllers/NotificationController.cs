@@ -27,12 +27,16 @@ namespace LaboratorAPI.Controllers
         public async Task<ActionResult> AddNotification([FromBody][Required] PostNotification request)
         {
             if (request == null) return BadRequest("Empty notification");
+            
+            var user = _unitOfWork.Users.GetById((Guid)GetUserId());
+            if (user == null) return BadRequest();
 
             var newNotification = new Notification
             {
                 Title = request.Title,
                 Description = request.Description,
-                UserId = (Guid) GetUserId()
+                UserId = user.Id,
+                Picture = request.Picture
             };
 
             _unitOfWork.Notifications.Insert(newNotification);

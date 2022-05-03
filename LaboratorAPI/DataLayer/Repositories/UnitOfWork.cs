@@ -25,8 +25,8 @@ namespace LaboratorAPI.DataLayer.Repositories
             IUserRepository users
 ,           INotificationsRepository notifications)
         {
-            Users = users;
             _efDbContext = efDbContext;
+            Users = users;
             Notifications = notifications;
 
         }

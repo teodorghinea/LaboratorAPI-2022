@@ -10,10 +10,10 @@ namespace LaboratorAPI.DataLayer
 
         public DbSet<AppUser> Users { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        
 
         public EfDbContext(DbContextOptions<EfDbContext> options) : base(options)
         {
+
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
